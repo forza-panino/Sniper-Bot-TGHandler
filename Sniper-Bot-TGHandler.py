@@ -116,7 +116,7 @@ def minuteReceived(update: Update, context: CallbackContext):
 def delayReceived(update: Update, context: CallbackContext):
     delay = update.message.text
     update.message.reply_text("delay: " + update.message.text)
-    context.bot.send_message(chat_id=update.effective_chat.id, text=f'You have followinfgmode: \n\
+    update.message.reply_text(f'You have followinfgmode: \n\
                             target: {target}\nhour: {hour}\nminute:{minute}\ndelay: {delay}\nConfirm?', reply_markup=user_confirm_markup)
     return USER_CONFIRM_STATE
 
@@ -140,15 +140,15 @@ dispatcher = updater.dispatcher
 
 conv_handler = ConversationHandler(
     
-    entry_points=[CallbackQueryHandler(presale, pattern=PRESALE_CALLBACK, run_async=False)],
+    entry_points=[CallbackQueryHandler(presale, pattern=PRESALE_CALLBACK)],
 
     states={
-        PRESALE: [CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK, run_async=False), MessageHandler(Filters.text, presale)],
-        ADDRESS_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False), MessageHandler(Filters.text, targetReceived)],
-        HOUR_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False), MessageHandler(Filters.text, hourReceived)],
-        MINUTE_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False), MessageHandler(Filters.text, minuteReceived)],
-        DELAY_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False), MessageHandler(Filters.text, delayReceived)],
-        USER_CONFIRM_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False), CallbackQueryHandler(confirm_presale, CONFIRM_CALLBACK, run_async=False)]
+        PRESALE: [CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK), MessageHandler(Filters.text, presale)],
+        ADDRESS_STATE: [CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK), MessageHandler(Filters.text, targetReceived)],
+        HOUR_STATE: [CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK), MessageHandler(Filters.text, hourReceived)],
+        MINUTE_STATE: [CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK), MessageHandler(Filters.text, minuteReceived)],
+        DELAY_STATE: [CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK), MessageHandler(Filters.text, delayReceived)],
+        USER_CONFIRM_STATE: [CallbackQueryHandler(confirm_presale, pattern=CONFIRM_CALLBACK), CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK)]
     },
 
     fallbacks=[CommandHandler('cancel', cancel)]
