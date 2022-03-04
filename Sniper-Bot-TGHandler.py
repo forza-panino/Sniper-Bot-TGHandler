@@ -10,7 +10,7 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 target  = ""
 testnet = ""
 delay = ""
-hour =""
+hour = ""
 minute = ""
 
 PRESALE = "PRESALE"
@@ -70,31 +70,50 @@ user_confirm_markup = InlineKeyboardMarkup(
         ]
     )
 
+admin_filter = Filters.user(user_id=config.ADMIN_ID)
+allowed_users_filter = Filters.user(user_id=config.ADMIN_ID)
+
 
 def start(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id, text='Select mode', reply_markup=init_markup)
-    return PRESALE
+    return ConversationHandler.END
+
+def addUser(update: Update, context: CallbackContext):
+    user_to_add = int(update.message.text[8:])
+    allowed_users_filter.add_user_ids(user_to_add)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=f'Added user: {user_to_add}')
+    return ConversationHandler.END
+
+def removeUser(update: Update, context: CallbackContext):
+    user_to_remove = int(update.message.text[11:])
+    allowed_users_filter.remove_user_ids(user_to_remove)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=f'Removed user: {user_to_remove}')
+    return ConversationHandler.END
+
+def listUsers(update: Update, context: CallbackContext):
+    context.bot.send_message(chat_id=update.effective_chat.id, text=f'Allowed users: {allowed_users_filter.chat_ids}')
+    return ConversationHandler.END
 
 def presale(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id, text='Started.\nSend wallet or cancel', reply_markup=setup_markup)
     return ADDRESS_STATE
 
-def target(update: Update, context: CallbackContext):
+def targetReceived(update: Update, context: CallbackContext):
     target = update.message.text
     update.message.reply_text("address: " + update.message.text + "\nSend hour or cancel", reply_markup=setup_markup)
     return HOUR_STATE
 
-def hour(update: Update, context: CallbackContext):
+def hourReceived(update: Update, context: CallbackContext):
     hour = update.message.text
     update.message.reply_text("hour: " + update.message.text + "\nSend minute or cancel", reply_markup=setup_markup)
     return MINUTE_STATE
 
-def minute(update: Update, context: CallbackContext):
+def minuteReceived(update: Update, context: CallbackContext):
     minute = update.message.text
     update.message.reply_text("minute: " + update.message.text + "\nSet delay or cancel", reply_markup=setup_markup)
     return DELAY_STATE
 
-def delay(update: Update, context: CallbackContext):
+def delayReceived(update: Update, context: CallbackContext):
     delay = update.message.text
     update.message.reply_text("delay: " + update.message.text)
     context.bot.send_message(chat_id=update.effective_chat.id, text=f'You have followinfgmode: \n\
@@ -107,8 +126,14 @@ def cancel(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 def confirm_presale(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=update.effective_chat.id, text='confirmed')
-    return ConversationHandler.END
+    if (update.effective_chat.id in allowed_users_filter.user_ids):
+        print("alloed")
+        context.bot.send_message(chat_id=update.effective_chat.id, text='confirmed')
+        return ConversationHandler.END
+    else:
+        print("not allowed")
+        context.bot.send_message(chat_id=update.effective_chat.id, text='Not allowed.') #final check for safety purposes
+        return ConversationHandler.END
 
 updater = Updater(token=config.API_KEY, use_context=True)
 dispatcher = updater.dispatcher
@@ -118,20 +143,22 @@ conv_handler = ConversationHandler(
     entry_points=[CallbackQueryHandler(presale, pattern=PRESALE_CALLBACK, run_async=False)],
 
     states={
-        PRESALE: [CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK, run_async=False),MessageHandler(Filters.text, presale)],
-        ADDRESS_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False),MessageHandler(Filters.text, target)],
-        HOUR_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False),MessageHandler(Filters.text, hour)],
-        MINUTE_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False),MessageHandler(Filters.text, minute)],
-        DELAY_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False),MessageHandler(Filters.text, delay)],
-        USER_CONFIRM_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False),CallbackQueryHandler(confirm_presale, CONFIRM_CALLBACK, run_async=False)]
+        PRESALE: [CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK, run_async=False), MessageHandler(Filters.text, presale)],
+        ADDRESS_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False), MessageHandler(Filters.text, targetReceived)],
+        HOUR_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False), MessageHandler(Filters.text, hourReceived)],
+        MINUTE_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False), MessageHandler(Filters.text, minuteReceived)],
+        DELAY_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False), MessageHandler(Filters.text, delayReceived)],
+        USER_CONFIRM_STATE: [CallbackQueryHandler(cancel, CANCEL_CALLBACK, run_async=False), CallbackQueryHandler(confirm_presale, CONFIRM_CALLBACK, run_async=False)]
     },
 
     fallbacks=[CommandHandler('cancel', cancel)]
 )
 
-
 dispatcher.add_handler(conv_handler)
-dispatcher.add_handler(CommandHandler("start", start, run_async=False))
+dispatcher.add_handler(CommandHandler("listusers", listUsers, filters = admin_filter))
+dispatcher.add_handler(CommandHandler("adduser", addUser, filters = admin_filter))
+dispatcher.add_handler(CommandHandler("removeuser", removeUser, filters = admin_filter))
+dispatcher.add_handler(CommandHandler("start", start, filters = allowed_users_filter))
 updater.start_polling()
 updater.idle()
 
