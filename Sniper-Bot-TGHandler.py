@@ -99,7 +99,7 @@ def delay(update: Update, context: CallbackContext):
     update.message.reply_text("delay: " + update.message.text)
     context.bot.send_message(chat_id=update.effective_chat.id, text=f'You have followinfgmode: \n\
                             target: {target}\nhour: {hour}\nminute:{minute}\ndelay: {delay}\nConfirm?', reply_markup=user_confirm_markup)
-    return USER_CONFIRM
+    return USER_CONFIRM_STATE
 
 def cancel(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id, text='Canceled.')
