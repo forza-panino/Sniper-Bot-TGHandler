@@ -28,6 +28,7 @@ setup_markup =  InlineKeyboardMarkup(
             ]
         ]
     )
+
 user_confirm_markup = InlineKeyboardMarkup(
         [
             [
@@ -38,6 +39,22 @@ user_confirm_markup = InlineKeyboardMarkup(
                 InlineKeyboardButton(
                     text=CANCEL,
                     callback_data=CANCEL_CALLBACK
+
+                )
+            ]
+        ]
+    )
+
+bnb_markup = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    text=BNB,
+                    callback_data=BNB_CALLBACK
+                ),
+                InlineKeyboardButton(
+                    text=BUSD,
+                    callback_data=BUSD_CALLBACK
 
                 )
             ]
