@@ -1,3 +1,4 @@
+from ast import pattern
 from telegram import Update
 from telegram.ext import CallbackContext, Dispatcher, MessageHandler, Filters, Updater, ConversationHandler, CommandHandler, CallbackQueryHandler
 
@@ -9,6 +10,7 @@ from . import config
 
 from .presale import presale_handlers
 from .fairlaunch import fairlaunch_handlers
+from .wallet_configuration import wallet_configuration_handlers
 
 def start(update: Update, context: CallbackContext):
 
@@ -124,12 +126,108 @@ fairlaunch_handler = ConversationHandler(
 
 )
 
+change_all_handler = ConversationHandler (
+
+    entry_points = [ CallbackQueryHandler(wallet_configuration_handlers.changeAll, pattern=CHANGE_ALL_CALLBACK) ],
+
+    states={
+        CHANGE_PRIVATE_STATE:
+                        [
+                            MessageHandler(Filters.text, wallet_configuration_handlers.privateInserted)
+                        ],
+        CHANGE_GAS_AMOUNT_STATE:
+                        [
+                            MessageHandler(Filters.text, wallet_configuration_handlers.gasAmountInserted)
+                        ],
+        CHANGE_GAS_PRICE_STATE:
+                        [
+                            MessageHandler(Filters.text, wallet_configuration_handlers.gasPriceInserted)
+                        ],
+        CHANGE_AMOUNT_STATE:
+                        [
+                            MessageHandler(Filters.text, wallet_configuration_handlers.amountInserted)
+                        ]
+    },
+
+    fallbacks = [ CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK) ]
+
+)
+
+only_private_handler = ConversationHandler (
+
+    entry_points = [ CallbackQueryHandler(wallet_configuration_handlers.onlyPrivate, pattern=CHANGE_PRIVATE_CALLBACK) ],
+
+    states={
+        CHANGE_PRIVATE_STATE:
+                        [
+                            MessageHandler(Filters.text, wallet_configuration_handlers.privateInserted)
+                        ]
+    },
+
+    fallbacks = [ CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK) ]
+
+)
+
+only_amount_handler = ConversationHandler (
+
+    entry_points = [ CallbackQueryHandler(wallet_configuration_handlers.onlyAmount, pattern=CHANGE_AMOUNT_CALLBACK) ],
+
+    states={
+        CHANGE_AMOUNT_STATE:
+                        [
+                            MessageHandler(Filters.text, wallet_configuration_handlers.amountInserted)
+                        ]
+    },
+
+    fallbacks = [ CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK) ]
+
+)
+
+only_gas_amount_handler = ConversationHandler (
+
+    entry_points = [ CallbackQueryHandler(wallet_configuration_handlers.onlyGasAmount, pattern=CHANGE_GAS_AMOUNT_CALLBACK) ],
+
+    states={
+        CHANGE_GAS_AMOUNT_STATE:
+                        [
+                            MessageHandler(Filters.text, wallet_configuration_handlers.gasAmountInserted)
+                        ]
+    },
+
+    fallbacks = [ CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK) ]
+
+)
+
+only_gas_price_handler = ConversationHandler (
+
+    entry_points = [ CallbackQueryHandler(wallet_configuration_handlers.onlyGasPrice, pattern=CHANGE_GAS_PRICE_CALLBACK) ],
+
+    states={
+        CHANGE_GAS_PRICE_STATE:
+                        [
+                            MessageHandler(Filters.text, wallet_configuration_handlers.gasPriceInserted)
+                        ]
+    },
+
+    fallbacks = [ CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK) ]
+
+)
+
 dispatcher.add_handler(presale_handler)
 dispatcher.add_handler(fairlaunch_handler)
+
+dispatcher.add_handler(CallbackQueryHandler(wallet_configuration_handlers.walletConfig, pattern=WALLET_CONFIG_CALLBACK))
+dispatcher.add_handler(change_all_handler)
+dispatcher.add_handler(only_amount_handler)
+dispatcher.add_handler(only_gas_amount_handler)
+dispatcher.add_handler(only_gas_price_handler)
+dispatcher.add_handler(only_private_handler)
+
 dispatcher.add_handler(CommandHandler("listusers", listUsers, filters = admin_filter))
 dispatcher.add_handler(CommandHandler("adduser", addUser, filters = admin_filter))
 dispatcher.add_handler(CommandHandler("removeuser", removeUser, filters = admin_filter))
 dispatcher.add_handler(CommandHandler("start", start, filters = allowed_users_filter))
+
 updater.start_polling()
 updater.idle()
 

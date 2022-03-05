@@ -14,6 +14,12 @@ init_markup = InlineKeyboardMarkup(
                     callback_data=FAIRLAUNCH_CALLBACK
 
                 )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=WALLET_CONFIG,
+                    callback_data=WALLET_CONFIG_CALLBACK
+                )
             ]
         ]
     )
@@ -57,6 +63,41 @@ bnb_markup = InlineKeyboardMarkup(
                     callback_data=BUSD_CALLBACK
 
                 )
+            ]
+        ]
+    )
+
+wallet_config_entry_markup = InlineKeyboardMarkup(
+        [
+            [   
+                InlineKeyboardButton(
+                    text=CHANGE_AMOUNT,
+                    callback_data=CHANGE_AMOUNT_CALLBACK
+
+                ),
+                InlineKeyboardButton(
+                    text=CHANGE_PRIVATE,
+                    callback_data=CHANGE_PRIVATE_CALLBACK
+
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=CHANGE_GAS_AMOUNT,
+                    callback_data=CHANGE_GAS_AMOUNT_CALLBACK
+
+                ),
+                InlineKeyboardButton(
+                    text=CHANGE_GAS_PRICE,
+                    callback_data=CHANGE_GAS_PRICE_CALLBACK
+
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=CHANGE_ALL,
+                    callback_data=CHANGE_ALL_CALLBACK
+                ),
             ]
         ]
     )
