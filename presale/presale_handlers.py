@@ -33,9 +33,14 @@ def minuteReceived(update: Update, context: CallbackContext):
 def delayReceived(update: Update, context: CallbackContext):
     global_options.delay = update.message.text
     update.message.reply_text("delay: " + update.message.text)
-    update.message.reply_text(f'You have followinfgmode: \n\
-                            target: {presale_config.target_address}\nhour: {presale_config.start_hour}\n\
-                            minute:{presale_config.start_minute}\ndelay: {global_options.delay}\nConfirm?', reply_markup=user_confirm_markup)
+    update.message.reply_text(
+                    (
+                    'You have settings: \n'
+                    f'target: {presale_config.target_address}\nhour: {presale_config.start_hour}\n'
+                    f'minute:{presale_config.start_minute}\ndelay: {global_options.delay}\nConfirm?'
+                    ), 
+                    reply_markup=user_confirm_markup
+    )
     return USER_CONFIRM_STATE
 
 def confirm_presale(update: Update, context: CallbackContext):

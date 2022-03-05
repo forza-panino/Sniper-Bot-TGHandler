@@ -60,3 +60,7 @@ dispatcher.add_handler(CommandHandler("removeuser", removeUser, filters = admin_
 dispatcher.add_handler(CommandHandler("start", start, filters = allowed_users_filter))
 updater.start_polling()
 updater.idle()
+
+#TO START:
+# cd ..
+# python -m Sniper-Bot-TGHandler.Sniper-Bot-TGHandler.py
