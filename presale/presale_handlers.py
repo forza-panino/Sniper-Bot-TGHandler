@@ -22,8 +22,10 @@ def presale(update: Update, context: CallbackContext):
 
     context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text='Started.\nSend wallet or cancel',
-        reply_markup=setup_markup
+        text='Started\.\n*Send wallet* or cancel\.',
+        reply_markup=setup_markup,
+        parse_mode = 'MarkdownV2'
+        
     )
 
     return ADDRESS_STATE
@@ -33,8 +35,9 @@ def targetReceived(update: Update, context: CallbackContext):
     presale_config.target_address = update.message.text
 
     update.message.reply_text(
-        "address: " + update.message.text + "\nSend hour or cancel",
-        reply_markup=setup_markup
+        f"*ADDRESS*: \n`{update.message.text}`\n*Send hour* or cancel\.",
+        reply_markup=setup_markup,
+        parse_mode = 'MarkdownV2'
     )
 
     return HOUR_STATE
@@ -43,9 +46,11 @@ def hourReceived(update: Update, context: CallbackContext):
 
     presale_config.start_hour = update.message.text
 
-    update.message.reply_text(
-        "hour: " + update.message.text + "\nSend minute or cancel", 
-        reply_markup=setup_markup
+    context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text=f"*HOUR*: {update.message.text}\n*Send minute* or cancel\.", 
+        reply_markup=setup_markup,
+        parse_mode = 'MarkdownV2'
     )
 
     return MINUTE_STATE
@@ -54,9 +59,11 @@ def minuteReceived(update: Update, context: CallbackContext):
 
     presale_config.start_minute = update.message.text
 
-    update.message.reply_text(
-        "minute: " + update.message.text + "\nSet delay or cancel", 
-        reply_markup=setup_markup
+    context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text=f"*MINUTE*: {update.message.text}\n*Set delay* or cancel\.", 
+        reply_markup=setup_markup,
+        parse_mode = 'MarkdownV2'
     )
 
     return DELAY_STATE
@@ -65,16 +72,20 @@ def delayReceived(update: Update, context: CallbackContext):
 
     global_options.delay = update.message.text
 
-    update.message.reply_text(
-        "delay: " + update.message.text
+    context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text=f"*DELAY*: {update.message.text}",
+        parse_mode = 'MarkdownV2'
     )
-    update.message.reply_text(
-                    (
-                    'You have settings: \n'
-                    f'target: {presale_config.target_address}\nhour: {presale_config.start_hour}\n'
-                    f'minute:{presale_config.start_minute}\ndelay: {global_options.delay}\nConfirm?'
-                    ), 
-                    reply_markup=user_confirm_markup
+    context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text=(
+                'You have settings: \n\n'
+                f'*target*: \n`{presale_config.target_address}`\n*hour*: {presale_config.start_hour}\n'
+                f'*minute*: {presale_config.start_minute}\n*delay*: {global_options.delay}\n\nConfirm?'
+            ), 
+        reply_markup=user_confirm_markup,
+        parse_mode = 'MarkdownV2'
     )
 
     return CONFIRM_STATE
@@ -89,9 +100,9 @@ def confirm_presale(update: Update, context: CallbackContext):
             context.bot.send_message(
             chat_id=user_id, 
             text=(
-                '*PRESALE SNIPING STARTED WITH FOLLOWING SETTINGS:*\n'
-                f'target: {presale_config.target_address}\nhour: {presale_config.start_hour}\n'
-                f'minute:{presale_config.start_minute}\ndelay: {global_options.delay}\n'
+                '*PRESALE SNIPING STARTED WITH FOLLOWING SETTINGS:*\n\n'
+                f'target: \n`{presale_config.target_address}`\nhour: {presale_config.start_hour}\n'
+                f'minute:{presale_config.start_minute}\ndelay: {global_options.delay}\n\n'
                 '*Please, do NOT make any transaction until sniping completed\. Press cancel to terminate\.*'
                 ),
             reply_markup=cancel_presale_markup,

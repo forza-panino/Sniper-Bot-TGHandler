@@ -12,11 +12,11 @@ should_change_everything = False
 
 def getWalletConfig():
     return (
-        'Private key: '
+        '*Private key*: \n'
         f'`{wallet_config.private_key[:3] + "*" * (len(wallet_config.private_key)-6) + (wallet_config.private_key[-1:-4:-1])[::-1] }`\n'
-        f'Gas price: `{wallet_config.gas_price}`\n'
-        f'Gas amount: `{wallet_config.gas_amount}`\n'
-        f'Amount: `{wallet_config.amount}` BNB/BUSD'
+        f'*Gas price*: `{wallet_config.gas_price}`\n'
+        f'*Gas amount*: `{wallet_config.gas_amount}`\n'
+        f'*Amount*: `{wallet_config.amount}` _BNB/BUSD_'
     )
 
 def walletConfig(update: Update, context: CallbackContext):
@@ -24,7 +24,7 @@ def walletConfig(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=update.effective_chat.id, 
         text=(
-            'Current settings:\n'
+            'Current settings:\n\n'
             f'{getWalletConfig()}'
             ), 
         reply_markup=wallet_config_entry_markup,

@@ -101,4 +101,4 @@ def startSniping(context):
         
     presale_handlers.thread = threading.Thread(target=startSniping, args=(context,))
     external_termination = False
-    notifyProgress(context,"Sniping process terminated\.")
+    notifyProgress(context,"*Sniping process terminated*\.")
