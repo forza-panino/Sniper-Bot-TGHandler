@@ -1,8 +1,14 @@
 from telegram import Update
 from telegram.ext import CallbackContext, ConversationHandler
 
+import asyncio
+import signal
+import threading
+import time
+
+
 from . import presale_config
-from .presale_executer import *
+from . import presale_executer
 
 from ..utils.defines import *
 from ..utils.markups import *
@@ -10,6 +16,7 @@ from ..utils.filters import allowed_users_filter
 
 from .. import global_options
 
+thread = threading.Thread(target=presale_executer.startSniping)
 
 def presale(update: Update, context: CallbackContext):
 
@@ -73,16 +80,43 @@ def delayReceived(update: Update, context: CallbackContext):
     return CONFIRM_STATE
 
 def confirm_presale(update: Update, context: CallbackContext):
+
+    global thread
+
     if (update.effective_chat.id in allowed_users_filter.user_ids): #final check for safety purposes
-        print("allowed")
-        context.bot.send_message(
-            chat_id=update.effective_chat.id, 
-            text='confirmed'
+
+        for user_id in allowed_users_filter.user_ids:
+            context.bot.send_message(
+            chat_id=user_id, 
+            text=(
+                '*PRESALE SNIPING STARTED WITH FOLLOWING SETTINGS:*\n'
+                f'target: {presale_config.target_address}\nhour: {presale_config.start_hour}\n'
+                f'minute:{presale_config.start_minute}\ndelay: {global_options.delay}\n'
+                '*Please, do NOT make any transaction until sniping completed\. Press cancel to terminate\.*'
+                ),
+            reply_markup=cancel_presale_markup,
+            parse_mode = 'MarkdownV2'
         )
+        thread = threading.Thread(target=presale_executer.startSniping, args=(context,))
+        thread.start()
+
     else:
-        print("not allowed")
         context.bot.send_message(
             chat_id=update.effective_chat.id, 
             text='Not allowed.'
         )
+
+    return ConversationHandler.END
+
+def cancelPresale(update: Update, context: CallbackContext):
+
+    global thread
+
+    presale_executer.external_termination = True
+    thread = threading.Thread(target=presale_executer.startSniping, args=(context,))
+    presale_executer.process.send_signal(signal.CTRL_BREAK_EVENT)
+    #presale_executer.process.send_signal(signal.CTRL_BREAK_EVENT)
+    time.sleep(2)
+    presale_executer.process = None
+    
     return ConversationHandler.END

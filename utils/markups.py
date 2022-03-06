@@ -101,3 +101,14 @@ wallet_config_entry_markup = InlineKeyboardMarkup(
             ]
         ]
     )
+
+cancel_presale_markup = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    text=CANCEL_PRESALE,
+                    callback_data=CANCEL_PRESALE_CALLBACK
+                )
+            ]
+        ]
+    )

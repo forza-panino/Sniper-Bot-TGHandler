@@ -1,11 +1,29 @@
 import subprocess
 import re
-import signal
+import threading
 
-from .presale_config import *
+from . import presale_config
+from . import presale_handlers
+
 from .. import global_options
+from ..utils import filters
 
-def startSniping():
+process = None
+external_termination = False
+
+def notifyProgress(context, msg):
+    for user in filters.allowed_users_filter.user_ids:
+        context.bot.send_message(
+            chat_id=user, 
+            text=msg,
+            parse_mode = 'MarkdownV2'
+        )
+
+
+def startSniping(context):
+
+    global process
+    global external_termination
 
     setup_ok_regex = re.compile(r"Waiting for time to come...")
     tx_sent_regex = re.compile(r"Transaction sent successfully. ")
@@ -19,20 +37,33 @@ def startSniping():
     message_waiting_confirmation = True
     checking_confirmed = True
 
-    testnet_option = "testnet" if global_options.testnet else " "
+    testnet_option = "-testnet" if global_options.testnet else " "
 
-    process = subprocess.Popen(f"npx ts-node src/python_interface/start_presale.ts -address={target_address} -hour={start_hour} -minute={start_minute} {testnet_option}", shell=True,  cwd=r'./Sniper-Bot', stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    process = subprocess.Popen(
+                    (   
+                        f"npx ts-node src/python_interface/start_presale.ts "
+                        f"-address={presale_config.target_address} -hour={presale_config.start_hour} "
+                        f"-minute={presale_config.start_minute} {testnet_option}"
+                    ), 
+                    shell=True,  
+                    cwd=r'./Sniper-Bot', 
+                    stdin=subprocess.PIPE, 
+                    stdout=subprocess.PIPE, 
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+    )
 
-    while process.poll() == None:
+    while process.poll() == None or process != None:
+
         line = process.stdout.readline().decode("utf-8")
-
+        
         if should_check_setup:
             
             if setup_ok_regex.search(line):
                 should_check_setup = False
                 continue
             else:
-                print("wrong setup")
+                if not external_termination:
+                    notifyProgress(context, "Wrong setup\.")
                 break
             
         if  line == None or line == "":
@@ -43,11 +74,12 @@ def startSniping():
                 waiting_sent_message = False
                 continue
             else:
-                print("error sending tx")
+                if not external_termination:
+                    notifyProgress(context, "TX not sent\.")
                 break
         
         if waiting_hash:
-            print("HASH: " + hash_regex.search(line).group(0))
+            notifyProgress(context, f"HASH: `{hash_regex.search(line).group(0)}`\nAwaiting confirmation\.\.\.")
             waiting_hash = False
             continue
 
@@ -56,19 +88,17 @@ def startSniping():
                 message_waiting_confirmation = False
                 continue
             else:
-                print("generic error")
+                notifyProgress(context, "generic error")
                 continue
 
         if checking_confirmed:
             if confirmed_regex.search(line):
-                print("confirmed")
+                notifyProgress(context, "confirmed")
                 break
             else:
-                print("not confirmed")
+                notifyProgress(context, "not confirmed")
                 break
         
-                  
-    print("finished")
-#0x51D522dFB50056aB41a1F6c248077Ba85a2b97d5
-'''            process.send_signal(signal.SIGINT)
-            process.send_signal(signal.SIGINT)'''
+    presale_handlers.thread = threading.Thread(target=startSniping, args=(context,))
+    external_termination = False
+    notifyProgress(context,"Sniping process terminated\.")

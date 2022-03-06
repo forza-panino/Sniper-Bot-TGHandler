@@ -94,7 +94,7 @@ presale_handler = ConversationHandler(
                             MessageHandler(Filters.text, presale_handlers.delayReceived)
                         ],
         CONFIRM_STATE:  [
-                            CallbackQueryHandler(presale_handlers.confirm_presale, pattern=CONFIRM_CALLBACK), 
+                            CallbackQueryHandler(presale_handlers.confirm_presale, pattern=CONFIRM_CALLBACK, run_async=True), 
                             CallbackQueryHandler(cancel, pattern=CANCEL_CALLBACK)
                         ]
     },
@@ -214,6 +214,7 @@ only_gas_price_handler = ConversationHandler (
 )
 
 dispatcher.add_handler(presale_handler)
+dispatcher.add_handler(CallbackQueryHandler(presale_handlers.cancelPresale, pattern=CANCEL_PRESALE_CALLBACK))
 dispatcher.add_handler(fairlaunch_handler)
 
 dispatcher.add_handler(CallbackQueryHandler(wallet_configuration_handlers.walletConfig, pattern=WALLET_CONFIG_CALLBACK))
@@ -230,6 +231,8 @@ dispatcher.add_handler(CommandHandler("start", start, filters = allowed_users_fi
 
 updater.start_polling()
 updater.idle()
+
+
 
 #TO START:
 # cd ..

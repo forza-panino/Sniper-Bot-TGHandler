@@ -6,6 +6,8 @@ from . import wallet_config
 from ..utils.defines import *
 from ..utils.markups import *
 
+from . import file_manipulator
+
 should_change_everything = False
 
 def getWalletConfig():
@@ -60,6 +62,7 @@ def privateInserted(update: Update, context: CallbackContext):
         chat_id=update.effective_chat.id, 
         text="Private key changed."
     )
+    file_manipulator.writeSettings()
     return ConversationHandler.END
 
 def amountInserted(update: Update, context: CallbackContext):
@@ -77,12 +80,14 @@ def amountInserted(update: Update, context: CallbackContext):
                 ), 
             parse_mode = 'MarkdownV2'
         )
+        file_manipulator.writeSettings()
         return ConversationHandler.END
 
     context.bot.send_message(
         chat_id=update.effective_chat.id, 
         text="Amount changed."
     )
+    file_manipulator.writeSettings()
     return ConversationHandler.END
 
 def gasAmountInserted(update: Update, context: CallbackContext):
@@ -102,6 +107,7 @@ def gasAmountInserted(update: Update, context: CallbackContext):
         chat_id=update.effective_chat.id, 
         text="Gas amount changed."
     )
+    file_manipulator.writeSettings()
     return ConversationHandler.END
 
 def gasPriceInserted(update: Update, context: CallbackContext):
@@ -121,6 +127,7 @@ def gasPriceInserted(update: Update, context: CallbackContext):
         chat_id=update.effective_chat.id, 
         text="Gas price changed."
     )
+    file_manipulator.writeSettings()
     return ConversationHandler.END
 
 def onlyPrivate(update: Update, context: CallbackContext):
